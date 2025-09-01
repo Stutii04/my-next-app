@@ -12,12 +12,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
       - name: Authenticate to Portainer
         run: |
           set -e
           RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$PORTAINER_URL/api/auth" \
             -H "Content-Type: application/json" \
-            -d "{\"username\":\"$admin\",\"password\":\"$Yd5CwgeBSaCXSbB\"}")
+            -d "{\"username\":\"admin\",\"password\":\"Yd5CwgeBSaCXSbB\"}")
 
           BODY=$(echo "$RESPONSE" | head -n1)
           STATUS=$(echo "$RESPONSE" | tail -n1)
@@ -32,3 +37,4 @@ jobs:
 
           JWT=$(echo "$BODY" | jq -r '.jwt')
           echo "✅ Authentication successful, JWT acquired"
+          echo "JWT=$JWT" >> $GITHUB_ENV

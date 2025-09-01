@@ -20,10 +20,11 @@ jobs:
           -d "{\"username\": \"$PORTAINER_USERNAME\", \"password\": \"$PORTAINER_PASSWORD\"}" \
           | jq -r .jwt > jwt.txt
 
-      - name: Deploy stack to Portainer
-        run: |
-          JWT=$(cat jwt.txt)
-          curl -s -X POST "$PORTAINER_URL/api/stacks" \
-          -H "Authorization: Bearer $JWT" \
-          -H "Content-Type: application/json" \
-          -d @docker-compose.yml
+     - name: Deploy stack to Portainer
+  run: |
+    JWT=$(cat jwt.txt)
+    curl -X POST "$PORTAINER_URL/api/stacks?method=string&endpointId=1" \
+      -H "Authorization: Bearer $JWT" \
+      -H "Content-Type: application/json" \
+      --data-binary @docker-compose.yml
+

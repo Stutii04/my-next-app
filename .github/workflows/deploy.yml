@@ -16,10 +16,10 @@ jobs:
       - name: Authenticate to Portainer
         run: |
           set -e
-          echo "🔍 Debug: PORTAINER_URL=$PORTAINER_URL"
-          echo "🔍 Debug: Username=$PORTAINER_USER"
+          echo "🔍 Debug: PORTAINER_URL=http://147.93.131.37:9000"
+          echo "🔍 Debug: Username=admin"
 
-          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$PORTAINER_URL/api/auth" \
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "http://147.93.131.37:9000/api/auth" \
             -H "Content-Type: application/json" \
             -d "{\"username\":\"admin\",\"password\":\"Yd5CwgeBSaCXSbB\"}")
 

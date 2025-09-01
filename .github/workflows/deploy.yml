@@ -1,0 +1,29 @@
+name: CI/CD to Portainer
+
+on:
+  push:
+    branches:
+      - main  # or your deploy branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Log in to Portainer and get JWT
+        run: |
+          curl -s -X POST "$PORTAINER_URL/api/auth" \
+          -H "Content-Type: application/json" \
+          -d "{\"username\": \"$PORTAINER_USERNAME\", \"password\": \"$PORTAINER_PASSWORD\"}" \
+          | jq -r .jwt > jwt.txt
+
+      - name: Deploy stack to Portainer
+        run: |
+          JWT=$(cat jwt.txt)
+          curl -s -X POST "$PORTAINER_URL/api/stacks" \
+          -H "Authorization: Bearer $JWT" \
+          -H "Content-Type: application/json" \
+          -d @docker-compose.yml

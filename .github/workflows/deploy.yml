@@ -4,33 +4,39 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
+      # 1. Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v3
 
+      # 2. Log in to DockerHub (or your registry)
+      - name: Log in to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.root }}
+          password: ${{ secrets.c2V62R8Sjjk& }}
+
+      # 3. Build & Push Docker image
+      - name: Build and Push Docker image
+        run: |
+          IMAGE=${{ secrets.root }}/myapp:latest
+          docker build -t $IMAGE .
+          docker push $IMAGE
+
+      # 4. Authenticate to Portainer
       - name: Authenticate to Portainer
         run: |
-          set -e
-          echo "🔍 Debug: PORTAINER_URL=http://147.93.131.37:9000"
-          echo "🔍 Debug: Username=admin"
-
           RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "http://147.93.131.37:9000/api/auth" \
             -H "Content-Type: application/json" \
-            -d "{\"username\":\"admin\",\"password\":\"Yd5CwgeBSaCXSbB\"}")
+            -d "{\"username\":\"$admin\",\"password\":\"Yd5CwgeBSaCXSbB\"}")
 
           BODY=$(echo "$RESPONSE" | head -n1)
           STATUS=$(echo "$RESPONSE" | tail -n1)
-
-          echo "🔍 Raw response:"
-          echo "$RESPONSE"
-
-          echo "Status: $STATUS"
-          echo "Body: $BODY"
 
           if [ "$STATUS" -ne 200 ]; then
             echo "❌ Authentication failed"
@@ -38,5 +44,12 @@ jobs:
           fi
 
           JWT=$(echo "$BODY" | jq -r '.jwt')
-          echo "✅ Authentication successful, JWT acquired"
           echo "JWT=$JWT" >> $GITHUB_ENV
+
+      # 5. Trigger Portainer stack redeploy
+      - name: Redeploy stack in Portainer
+        run: |
+          curl -s -X POST "http://147.93.131.37:9000/api/stacks/$STACK_ID/deploy" \
+            -H "Authorization: Bearer $JWT" \
+            -H "Content-Type: application/json" \
+            -d '{}'

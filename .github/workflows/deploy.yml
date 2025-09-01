@@ -1,3 +1,11 @@
+name: Deploy to Portainer
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -11,7 +19,7 @@ jobs:
           echo "🔍 Debug: PORTAINER_URL=$PORTAINER_URL"
           echo "🔍 Debug: Username=$PORTAINER_USER"
 
-          RESPONSE=$(curl -v -s -w "\n%{http_code}" -X POST "$PORTAINER_URL/api/auth" \
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$PORTAINER_URL/api/auth" \
             -H "Content-Type: application/json" \
             -d "{\"username\":\"admin\",\"password\":\"Yd5CwgeBSaCXSbB\"}")
 

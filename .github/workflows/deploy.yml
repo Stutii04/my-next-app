@@ -1,32 +1,20 @@
-name: Deploy to Portainer
+- name: Authenticate to Portainer
+  run: |
+    set -e
+    RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$PORTAINER_URL/api/auth" \
+      -H "Content-Type: application/json" \
+      -d "{\"username\":\"$admin\",\"password\":\"$Yd5CwgeBSaCXSbB\"}")
 
-on:
-  push:
-    branches:
-      - main
+    BODY=$(echo "$RESPONSE" | head -n1)
+    STATUS=$(echo "$RESPONSE" | tail -n1)
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
+    echo "Status: $STATUS"
+    echo "Body: $BODY"
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+    if [ "$STATUS" -ne 200 ]; then
+      echo "❌ Authentication failed"
+      exit 1
+    fi
 
-      - name: Install jq
-        run: sudo apt-get update && sudo apt-get install -y jq
-
-      - name: Authenticate to Portainer
-        run: |
-          curl -s -X POST "$PORTAINER_URL/api/auth" \
-            -H "Content-Type: application/json" \
-            -d "{\"username\": \"$PORTAINER_USER\", \"password\": \"$PORTAINER_PASS\"}" \
-            | jq -r '.jwt' > jwt.txt
-
-      - name: Deploy stack to Portainer
-        run: |
-          JWT=$(cat jwt.txt)
-          curl -s -X POST "$PORTAINER_URL/api/stacks?method=string&endpointId=1" \
-            -H "Authorization: Bearer $JWT" \
-            -H "Content-Type: application/json" \
-            --data-binary @docker-compose.yml
+    JWT=$(echo "$BODY" | jq -r '.jwt')
+    echo "✅ Authentication successful, JWT acquired"

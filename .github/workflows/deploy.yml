@@ -13,6 +13,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
       - name: Authenticate to Portainer
         run: |
           curl -s -X POST "$PORTAINER_URL/api/auth" \

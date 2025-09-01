@@ -1,0 +1,35 @@
+name: CI/CD to Portainer
+
+on:
+  push:
+    branches:
+      - main   # or your deploy branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Log in to Portainer and get JWT
+        id: auth
+        run: |
+          TOKEN=$(curl -s -X POST "${{ secrets.PORTAINER_URL }}/api/auth" \
+            -H "Content-Type: application/json" \
+            -d "{\"username\": \"${{ secrets.PORTAINER_USERNAME }}\", \"password\": \"${{ secrets.PORTAINER_PASSWORD }}\"}" \
+            | jq -r .jwt)
+          echo "TOKEN=$TOKEN" >> $GITHUB_ENV
+
+      - name: Deploy stack to Portainer
+        run: |
+          curl -s -X POST "${{ secrets.PORTAINER_URL }}/api/stacks" \
+            -H "Authorization: Bearer $TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "name": "myapp",
+              "stackFileContent": "'"$(cat docker-compose.yml)"'",
+              "env": []
+            }'
+

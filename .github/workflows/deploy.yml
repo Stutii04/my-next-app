@@ -13,10 +13,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Authenticate to Portainer
+        run: |
+          curl -s -X POST "$PORTAINER_URL/api/auth" \
+            -H "Content-Type: application/json" \
+            -d "{\"username\": \"$PORTAINER_USER\", \"password\": \"$PORTAINER_PASS\"}" \
+            | jq -r '.jwt' > jwt.txt
+
       - name: Deploy stack to Portainer
         run: |
           JWT=$(cat jwt.txt)
-          curl -X POST "$PORTAINER_URL/api/stacks?method=string&endpointId=1" \
+          curl -s -X POST "$PORTAINER_URL/api/stacks?method=string&endpointId=1" \
             -H "Authorization: Bearer $JWT" \
             -H "Content-Type: application/json" \
             --data-binary @docker-compose.yml

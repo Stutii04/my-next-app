@@ -31,7 +31,6 @@ jobs:
             echo "❌ Authentication failed"
             exit 1
           fi
-
           JWT=$(echo "$BODY" | jq -r '.jwt')
           echo "✅ Authentication successful, JWT acquired"
           echo "JWT=$JWT" >> $GITHUB_ENV
